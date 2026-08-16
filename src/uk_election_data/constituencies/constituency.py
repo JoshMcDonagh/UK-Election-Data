@@ -1,3 +1,5 @@
+from datetime import date
+
 from uk_election_data.constituencies.candidate import Candidate
 
 
@@ -6,13 +8,13 @@ class Constituency:
             self,
             name: str,
             region: str,
-            election_year: int,
-            candidate_results: list[Candidate]
+            election_date: date,
+            candidate_list: list[Candidate]
     ):
         self._name = name
         self._region = region
-        self._election_year = election_year
-        self._candidate_results_list = candidate_results
+        self._election_date = election_date
+        self._candidate_list = candidate_list.copy()
 
         self._elected_candidate: str
         self._winning_party: str
@@ -23,8 +25,8 @@ class Constituency:
         self._candidate_indexes_by_party: dict[str, int] = {}
         self._candidate_indexes_by_place: dict[int, int] = {}
 
-        for i in range(len(candidate_results)):
-            candidate_result = candidate_results[i]
+        for i in range(len(candidate_list)):
+            candidate_result = candidate_list[i]
 
             if candidate_result.elected:
                 self._elected_candidate = candidate_result.name
@@ -45,12 +47,12 @@ class Constituency:
         return self._region
 
     @property
-    def election_year(self) -> int:
-        return self._election_year
+    def election_date(self) -> date:
+        return self._election_date
 
     @property
-    def candidate_results_list(self) -> list[Candidate]:
-        return self._candidate_results_list.copy()
+    def candidate_list(self) -> list[Candidate]:
+        return self._candidate_list.copy()
 
     @property
     def elected_candidate(self) -> str:
@@ -65,10 +67,10 @@ class Constituency:
         return self._total_votes
 
     def get_candidate_by_name(self, name: str) -> Candidate:
-        return self._candidate_results_list[self._candidate_indexes_by_name[name]]
+        return self._candidate_list[self._candidate_indexes_by_name[name]]
 
     def get_candidate_by_party(self, party: str) -> Candidate:
-        return self._candidate_results_list[self._candidate_indexes_by_party[party]]
+        return self._candidate_list[self._candidate_indexes_by_party[party]]
 
     def get_candidate_by_place(self, place: int) -> Candidate:
-        return self._candidate_results_list[self._candidate_indexes_by_place[place]]
+        return self._candidate_list[self._candidate_indexes_by_place[place]]

@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Callable
 
 from uk_election_data.constituencies.constituency import Constituency
@@ -15,9 +16,9 @@ class Constituencies:
         else:
             index_dict[constituency_identifier] = [constituency_index]
 
-    def __init__(self, election_year: str, constituency_list: list[Constituency]):
-        self._election_year = election_year
-        self._constituency_list = constituency_list
+    def __init__(self, election_date: date, constituency_list: list[Constituency]):
+        self._election_date = election_date
+        self._constituency_list = constituency_list.copy()
 
         self._seats_won_by_party: dict[str, int] = {}
         self._votes_by_party: dict[str, int] = {}
@@ -39,7 +40,7 @@ class Constituencies:
             Constituencies._add_constituency_index(self._constituency_indexes_by_winning_party, constituency.winning_party, i)
             Constituencies._add_constituency_index(self._constituency_indexes_by_elected_candidate, constituency.elected_candidate, i)
 
-            for candidate_result in constituency.candidate_results_list:
+            for candidate_result in constituency.candidate_list:
                 if candidate_result.party not in self._seats_won_by_party:
                     self._seats_won_by_party[candidate_result.party] = 0
                     self._votes_by_party[candidate_result.party] = 0
@@ -55,6 +56,10 @@ class Constituencies:
 
         for party, votes in self._votes_by_party.items():
             self._vote_share_by_party[party] = votes / self._total_votes
+
+    @property
+    def election_date(self) -> date:
+        return self._election_date
 
     @property
     def as_list(self) -> list[Constituency]:
