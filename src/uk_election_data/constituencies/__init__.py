@@ -8,15 +8,18 @@ class Constituencies:
     @staticmethod
     def _add_constituency_index(
             index_dict: dict[str, list[int]],
-            constituency_identifier: str,
+            constituency_identifier: str | None,
             constituency_index: int
     ) -> None:
+        if constituency_identifier is None:
+            return
         if constituency_identifier in index_dict:
             index_dict[constituency_identifier].append(constituency_index)
         else:
             index_dict[constituency_identifier] = [constituency_index]
 
-    def __init__(self, election_date: date, constituency_list: list[Constituency]):
+    def __init__(self, election_id: int, election_date: date, constituency_list: list[Constituency]):
+        self._election_id = election_id
         self._election_date = election_date
         self._constituency_list = constituency_list.copy()
 
@@ -25,7 +28,9 @@ class Constituencies:
         self._total_valid_votes: int = 0
         self._vote_share_by_party: dict[str, float] = {}
 
-        self._constituency_indexes_by_name: dict[str, int] = {}
+        self._constituency_indexes_by_constituency_id: dict[int, int] = {}
+        self._constituency_indexes_by_name: dict[str, list[int]] = {}
+        self._constituency_indexes_by_country: dict[str, list[int]] = {}
         self._constituency_indexes_by_region: dict[str, list[int]] = {}
         self._constituency_indexes_by_winning_party: dict[str, list[int]] = {}
         self._constituency_indexes_by_elected_candidate: dict[str, list[int]] = {}
@@ -35,7 +40,9 @@ class Constituencies:
         for i in range(len(self._constituency_list)):
             constituency = self._constituency_list[i]
 
-            self._constituency_indexes_by_name[constituency.name] = i
+            self._constituency_indexes_by_constituency_id[constituency.constituency_id] = i
+            Constituencies._add_constituency_index(self._constituency_indexes_by_name, constituency.name, i)
+            Constituencies._add_constituency_index(self._constituency_indexes_by_country, constituency.country, i)
             Constituencies._add_constituency_index(self._constituency_indexes_by_region, constituency.region, i)
             Constituencies._add_constituency_index(self._constituency_indexes_by_winning_party, constituency.winning_party, i)
             Constituencies._add_constituency_index(self._constituency_indexes_by_elected_candidate, constituency.elected_candidate, i)
@@ -56,6 +63,10 @@ class Constituencies:
 
         for party, votes in self._votes_by_party.items():
             self._vote_share_by_party[party] = votes / self._total_valid_votes
+
+    @property
+    def election_id(self) -> int:
+        return self._election_id
 
     @property
     def election_date(self) -> date:
@@ -81,16 +92,16 @@ class Constituencies:
     def get_at_index(self, index: int) -> Constituency:
         return self._constituency_list[index]
 
-    def get_by_name(self, name: str) -> Constituency:
-        return self._constituency_list[self._constituency_indexes_by_name[name]]
+    def get_by_id(self, constituency_id: int) -> Constituency:
+        return self._constituency_list[self._constituency_indexes_by_constituency_id[constituency_id]]
 
     def _get_constituencies_by_identifier(
             self,
             index_dict: dict[str, list[int]],
             constituency_identifier: str
-    ) -> list[Constituency] | None:
+    ) -> list[Constituency]:
         if constituency_identifier not in index_dict:
-            return None
+            return []
 
         constituencies: list[Constituency] = []
         indexes = index_dict[constituency_identifier]
@@ -99,19 +110,25 @@ class Constituencies:
 
         return constituencies
 
-    def get_by_region(self, region: str) -> list[Constituency] | None:
+    def get_by_name(self, name: str) -> list[Constituency]:
+        return self._get_constituencies_by_identifier(self._constituency_indexes_by_name, name)
+
+    def get_by_country(self, country: str) -> list[Constituency]:
+        return self._get_constituencies_by_identifier(self._constituency_indexes_by_country, country)
+
+    def get_by_region(self, region: str) -> list[Constituency]:
         return self._get_constituencies_by_identifier(self._constituency_indexes_by_region, region)
 
-    def get_by_winning_party(self, party: str) -> list[Constituency] | None:
+    def get_by_winning_party(self, party: str) -> list[Constituency]:
         return self._get_constituencies_by_identifier(self._constituency_indexes_by_winning_party, party)
 
-    def get_by_elected_candidate(self, candidate: str) -> list[Constituency] | None:
+    def get_by_elected_candidate(self, candidate: str) -> list[Constituency]:
         return self._get_constituencies_by_identifier(self._constituency_indexes_by_elected_candidate, candidate)
 
-    def get_by_standing_party(self, party: str) -> list[Constituency] | None:
+    def get_by_standing_party(self, party: str) -> list[Constituency]:
         return self._get_constituencies_by_identifier(self._constituency_indexes_by_standing_party, party)
 
-    def get_by_candidate_name(self, candidate: str) -> list[Constituency] | None:
+    def get_by_candidate_name(self, candidate: str) -> list[Constituency]:
         return self._get_constituencies_by_identifier(self._constituency_indexes_by_candidate_name, candidate)
 
     def get_filtered(self, filter_func: Callable[[Constituency], bool]) -> list[Constituency]:
