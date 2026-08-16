@@ -22,7 +22,7 @@ class Constituencies:
 
         self._seats_won_by_party: dict[str, int] = {}
         self._votes_by_party: dict[str, int] = {}
-        self._total_votes: int = 0
+        self._total_valid_votes: int = 0
         self._vote_share_by_party: dict[str, float] = {}
 
         self._constituency_indexes_by_name: dict[str, int] = {}
@@ -49,13 +49,13 @@ class Constituencies:
                     self._seats_won_by_party[candidate_result.party] += 1
 
                 self._votes_by_party[candidate_result.party] += candidate_result.votes.total
-                self._total_votes += candidate_result.votes.total
+                self._total_valid_votes += candidate_result.votes.total
 
                 Constituencies._add_constituency_index(self._constituency_indexes_by_standing_party, candidate_result.party, i)
                 Constituencies._add_constituency_index(self._constituency_indexes_by_candidate_name, candidate_result.name, i)
 
         for party, votes in self._votes_by_party.items():
-            self._vote_share_by_party[party] = votes / self._total_votes
+            self._vote_share_by_party[party] = votes / self._total_valid_votes
 
     @property
     def election_date(self) -> date:
@@ -72,8 +72,8 @@ class Constituencies:
         return self._votes_by_party[party]
 
     @property
-    def total_number_of_votes_cast(self) -> int:
-        return self._total_votes
+    def total_valid_votes(self) -> int:
+        return self._total_valid_votes
 
     def vote_share_by_party(self, party: str) -> float:
         return self._vote_share_by_party[party]
