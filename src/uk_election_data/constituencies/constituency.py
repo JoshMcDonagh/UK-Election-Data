@@ -17,6 +17,8 @@ class Constituency:
         self._elected_candidate: str
         self._winning_party: str
 
+        self._total_votes: int = 0
+
         self._candidate_indexes_by_name: dict[str, int] = {}
         self._candidate_indexes_by_party: dict[str, int] = {}
         self._candidate_indexes_by_place: dict[int, int] = {}
@@ -27,6 +29,8 @@ class Constituency:
             if candidate_result.elected:
                 self._elected_candidate = candidate_result.name
                 self._winning_party = candidate_result.party
+
+            self._total_votes += candidate_result.vote.total
 
             self._candidate_indexes_by_name[candidate_result.name] = i
             self._candidate_indexes_by_party[candidate_result.party] = i
@@ -55,6 +59,10 @@ class Constituency:
     @property
     def winning_party(self) -> str:
         return self._winning_party
+
+    @property
+    def total_number_of_votes_cast(self) -> int:
+        return self._total_votes
 
     def get_candidate_by_name(self, name: str) -> CandidateResult:
         return self._candidate_results_list[self._candidate_indexes_by_name[name]]

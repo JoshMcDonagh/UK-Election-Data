@@ -68,9 +68,9 @@ class Constituencies:
         return self._votes_by_party[party]
 
     @property
-    def total_number_of_votes_cast(self):
+    def total_number_of_votes_cast(self) -> int:
         return self._total_votes
-    
+
     def vote_share_by_party(self, party: str) -> float:
         return self._vote_share_by_party[party]
 
