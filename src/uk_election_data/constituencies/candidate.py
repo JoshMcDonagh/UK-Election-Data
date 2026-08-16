@@ -1,13 +1,18 @@
 from dataclasses import dataclass
 
-from uk_election_data.constituencies.candidate_votes import CandidateVotes
+
+@dataclass(frozen=True)
+class VotesReceived:
+    total: int
+    share: float
+    place: int
 
 
 @dataclass(frozen=True)
-class CandidateResult:
+class Candidate:
     name: str
     party: str
     constituency: str
     election_year: str
     elected: bool
-    vote: CandidateVotes
+    votes: VotesReceived

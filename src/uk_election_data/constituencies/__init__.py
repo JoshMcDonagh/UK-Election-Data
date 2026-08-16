@@ -1,6 +1,5 @@
 from typing import Callable
 
-from uk_election_data.constituencies.candidate_votes import CandidateVotes
 from uk_election_data.constituencies.constituency import Constituency
 
 
@@ -48,8 +47,8 @@ class Constituencies:
                 if candidate_result.elected:
                     self._seats_won_by_party[candidate_result.party] += 1
 
-                self._votes_by_party[candidate_result.party] += candidate_result.vote.total
-                self._total_votes += candidate_result.vote.total
+                self._votes_by_party[candidate_result.party] += candidate_result.votes.total
+                self._total_votes += candidate_result.votes.total
 
                 Constituencies._add_constituency_index(self._constituency_indexes_by_standing_party, candidate_result.party, i)
                 Constituencies._add_constituency_index(self._constituency_indexes_by_candidate_name, candidate_result.name, i)

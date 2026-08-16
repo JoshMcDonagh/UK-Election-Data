@@ -1,4 +1,4 @@
-from uk_election_data.constituencies.candidate_result import CandidateResult
+from uk_election_data.constituencies.candidate import Candidate
 
 
 class Constituency:
@@ -7,7 +7,7 @@ class Constituency:
             name: str,
             region: str,
             election_year: int,
-            candidate_results: list[CandidateResult]
+            candidate_results: list[Candidate]
     ):
         self._name = name
         self._region = region
@@ -30,11 +30,11 @@ class Constituency:
                 self._elected_candidate = candidate_result.name
                 self._winning_party = candidate_result.party
 
-            self._total_votes += candidate_result.vote.total
+            self._total_votes += candidate_result.votes.total
 
             self._candidate_indexes_by_name[candidate_result.name] = i
             self._candidate_indexes_by_party[candidate_result.party] = i
-            self._candidate_indexes_by_place[candidate_result.vote.place] = i
+            self._candidate_indexes_by_place[candidate_result.votes.place] = i
 
     @property
     def name(self) -> str:
@@ -49,7 +49,7 @@ class Constituency:
         return self._election_year
 
     @property
-    def candidate_results_list(self) -> list[CandidateResult]:
+    def candidate_results_list(self) -> list[Candidate]:
         return self._candidate_results_list.copy()
 
     @property
@@ -64,11 +64,11 @@ class Constituency:
     def total_number_of_votes_cast(self) -> int:
         return self._total_votes
 
-    def get_candidate_by_name(self, name: str) -> CandidateResult:
+    def get_candidate_by_name(self, name: str) -> Candidate:
         return self._candidate_results_list[self._candidate_indexes_by_name[name]]
 
-    def get_candidate_by_party(self, party: str) -> CandidateResult:
+    def get_candidate_by_party(self, party: str) -> Candidate:
         return self._candidate_results_list[self._candidate_indexes_by_party[party]]
 
-    def get_candidate_by_place(self, place: int) -> CandidateResult:
+    def get_candidate_by_place(self, place: int) -> Candidate:
         return self._candidate_results_list[self._candidate_indexes_by_place[place]]
