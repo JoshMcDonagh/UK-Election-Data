@@ -5,15 +5,17 @@ class Constituency:
     def __init__(
             self,
             name: str,
+            region: str,
             election_year: int,
             candidate_results: list[CandidateResult]
     ):
         self._name = name
+        self._region = region
         self._election_year = election_year
         self._candidate_results_list = candidate_results
 
         self._elected_candidate: str
-        self._elected_party: str
+        self._winning_party: str
 
         self._candidate_indexes_by_name: dict[str, int] = {}
         self._candidate_indexes_by_party: dict[str, int] = {}
@@ -33,6 +35,10 @@ class Constituency:
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def region(self) -> str:
+        return self._region
 
     @property
     def election_year(self) -> int:
