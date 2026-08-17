@@ -1,7 +1,7 @@
-from datetime import date
-from typing import Callable
+from collections.abc import Iterator
+from typing import Callable, overload
 
-from uk_election_data.constituencies.constituency import Constituency
+from uk_election_data.general.constituencies.constituency import Constituency
 
 
 class Constituencies:
@@ -18,15 +18,8 @@ class Constituencies:
         else:
             index_dict[constituency_identifier] = [constituency_index]
 
-    def __init__(self, election_id: int, election_date: date, constituency_list: list[Constituency]):
-        self._election_id = election_id
-        self._election_date = election_date
+    def __init__(self, constituency_list: list[Constituency]):
         self._constituency_list = constituency_list.copy()
-
-        self._seats_won_by_party: dict[str, int] = {}
-        self._votes_by_party: dict[str, int] = {}
-        self._total_valid_votes: int = 0
-        self._vote_share_by_party: dict[str, float] = {}
 
         self._constituency_indexes_by_constituency_id: dict[int, int] = {}
         self._constituency_indexes_by_name: dict[str, list[int]] = {}
@@ -48,49 +41,27 @@ class Constituencies:
             Constituencies._add_constituency_index(self._constituency_indexes_by_elected_candidate, constituency.elected_candidate, i)
 
             for candidate_result in constituency.candidate_list:
-                if candidate_result.party not in self._seats_won_by_party:
-                    self._seats_won_by_party[candidate_result.party] = 0
-                    self._votes_by_party[candidate_result.party] = 0
-
-                if candidate_result.elected:
-                    self._seats_won_by_party[candidate_result.party] += 1
-
-                self._votes_by_party[candidate_result.party] += candidate_result.votes.total
-                self._total_valid_votes += candidate_result.votes.total
-
                 Constituencies._add_constituency_index(self._constituency_indexes_by_standing_party, candidate_result.party, i)
                 Constituencies._add_constituency_index(self._constituency_indexes_by_candidate_name, candidate_result.name, i)
 
-        for party, votes in self._votes_by_party.items():
-            self._vote_share_by_party[party] = votes / self._total_valid_votes
+    def __len__(self) -> int:
+        return len(self._constituency_list)
 
-    @property
-    def election_id(self) -> int:
-        return self._election_id
+    def __iter__(self) -> Iterator[Constituency]:
+        return iter(self._constituency_list)
 
-    @property
-    def election_date(self) -> date:
-        return self._election_date
+    @overload
+    def __getitem__(self, index: int) -> Constituency: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> list[Constituency]: ...
+
+    def __getitem__(self, index: int | slice) -> Constituency | list[Constituency]:
+        return self._constituency_list[index]
 
     @property
     def as_list(self) -> list[Constituency]:
         return self._constituency_list.copy()
-
-    def number_of_seats_won_by_party(self, party: str) -> int:
-        return self._seats_won_by_party[party]
-
-    def number_of_votes_by_party(self, party: str) -> int:
-        return self._votes_by_party[party]
-
-    @property
-    def total_valid_votes(self) -> int:
-        return self._total_valid_votes
-
-    def vote_share_by_party(self, party: str) -> float:
-        return self._vote_share_by_party[party]
-
-    def get_at_index(self, index: int) -> Constituency:
-        return self._constituency_list[index]
 
     def get_by_id(self, constituency_id: int) -> Constituency:
         return self._constituency_list[self._constituency_indexes_by_constituency_id[constituency_id]]

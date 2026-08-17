@@ -10,7 +10,7 @@ class VotesReceived:
 
 
 @dataclass(frozen=True)
-class CandidateResult:
+class ConstituencyCandidateResult:
     candidacy_id: int
     constituency_id: int
     election_id: int

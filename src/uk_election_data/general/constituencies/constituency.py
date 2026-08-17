@@ -1,6 +1,6 @@
 from datetime import date
 
-from uk_election_data.constituencies.candidate_result import CandidateResult
+from uk_election_data.general.constituencies.candidate_result import ConstituencyCandidateResult
 
 
 class Constituency:
@@ -12,7 +12,9 @@ class Constituency:
             country: str,
             region: str | None,
             election_date: date,
-            candidate_list: list[CandidateResult]
+            total_invalid_votes: int,
+            total_registered_voters: int,
+            candidate_list: list[ConstituencyCandidateResult]
     ):
         self._constituency_id = constituency_id
         self._election_id = election_id
@@ -26,6 +28,8 @@ class Constituency:
         self._winning_party: str | None = None
 
         self._total_valid_votes: int = 0
+        self._total_invalid_votes = total_invalid_votes
+        self._total_registered_voters: int = total_registered_voters
 
         self._candidate_indexes_by_name: dict[str, int] = {}
         self._candidate_indexes_by_party: dict[str, list[int]] = {}
@@ -77,7 +81,7 @@ class Constituency:
         return self._election_date
 
     @property
-    def candidate_list(self) -> list[CandidateResult]:
+    def candidate_list(self) -> list[ConstituencyCandidateResult]:
         return self._candidate_list.copy()
 
     @property
@@ -96,16 +100,32 @@ class Constituency:
     def total_valid_votes(self) -> int:
         return self._total_valid_votes
 
-    def get_candidate_by_name(self, name: str) -> CandidateResult:
+    @property
+    def total_invalid_votes(self) -> int:
+        return self._total_invalid_votes
+
+    @property
+    def total_votes(self) -> int:
+        return self._total_valid_votes + self._total_invalid_votes
+
+    @property
+    def total_registered_voters(self) -> int:
+        return self._total_registered_voters
+
+    @property
+    def turnout(self) -> float:
+        return self.total_votes / self._total_registered_voters
+
+    def get_candidate_by_name(self, name: str) -> ConstituencyCandidateResult:
         return self._candidate_list[self._candidate_indexes_by_name[name]]
 
-    def get_candidate_by_party(self, party: str) -> list[CandidateResult]:
-        party_candidate_list: list[CandidateResult] = []
+    def get_candidate_by_party(self, party: str) -> list[ConstituencyCandidateResult]:
+        party_candidate_list: list[ConstituencyCandidateResult] = []
 
         for index in self._candidate_indexes_by_party[party]:
             party_candidate_list.append(self._candidate_list[index])
 
         return party_candidate_list
 
-    def get_candidate_by_place(self, place: int) -> CandidateResult:
+    def get_candidate_by_place(self, place: int) -> ConstituencyCandidateResult:
         return self._candidate_list[self._candidate_indexes_by_place[place]]
