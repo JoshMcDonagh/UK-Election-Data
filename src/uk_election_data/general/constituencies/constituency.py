@@ -1,6 +1,6 @@
 from datetime import date
 
-from uk_election_data.general.constituencies.candidate_result import ConstituencyCandidateResult
+from uk_election_data.general.constituencies.candidate import Candidate
 
 
 class Constituency:
@@ -14,7 +14,7 @@ class Constituency:
             election_date: date,
             total_invalid_votes: int,
             total_registered_voters: int,
-            candidate_list: list[ConstituencyCandidateResult]
+            candidate_list: list[Candidate]
     ):
         self._constituency_id = constituency_id
         self._election_id = election_id
@@ -81,7 +81,7 @@ class Constituency:
         return self._election_date
 
     @property
-    def candidate_list(self) -> list[ConstituencyCandidateResult]:
+    def candidate_list(self) -> list[Candidate]:
         return self._candidate_list.copy()
 
     @property
@@ -116,16 +116,16 @@ class Constituency:
     def turnout(self) -> float:
         return self.total_votes / self._total_registered_voters
 
-    def get_candidate_by_name(self, name: str) -> ConstituencyCandidateResult:
+    def get_candidate_by_name(self, name: str) -> Candidate:
         return self._candidate_list[self._candidate_indexes_by_name[name]]
 
-    def get_candidate_by_party(self, party: str) -> list[ConstituencyCandidateResult]:
-        party_candidate_list: list[ConstituencyCandidateResult] = []
+    def get_candidate_by_party(self, party: str) -> list[Candidate]:
+        party_candidate_list: list[Candidate] = []
 
         for index in self._candidate_indexes_by_party[party]:
             party_candidate_list.append(self._candidate_list[index])
 
         return party_candidate_list
 
-    def get_candidate_by_place(self, place: int) -> ConstituencyCandidateResult:
+    def get_candidate_by_place(self, place: int) -> Candidate:
         return self._candidate_list[self._candidate_indexes_by_place[place]]

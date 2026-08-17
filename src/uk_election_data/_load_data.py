@@ -3,8 +3,8 @@ from datetime import date
 from importlib.resources import files
 
 from uk_election_data.general.constituencies import Constituencies, Constituency
-from uk_election_data.general.constituencies.candidate_result import ConstituencyCandidateResult, VotesReceived
-from uk_election_data.general.election_result import GeneralElectionResult
+from uk_election_data.general.constituencies.candidate import Candidate, VotesReceived
+from uk_election_data.general.election_result import GeneralElection
 
 
 def _connect() -> sqlite3.Connection:
@@ -14,6 +14,32 @@ def _connect() -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
 
     return connection
+
+
+def get_general_election_dates(include_notional: bool = False) -> list[date]:
+    with _connect() as connection:
+        if include_notional:
+            rows = connection.execute(
+                """
+                SELECT polling_on
+                FROM general_elections
+                WHERE is_notional = 1
+                ORDER BY polling_on
+                """
+            ).fetchall()
+        else:
+            rows = connection.execute(
+                """
+                SELECT polling_on
+                FROM general_elections
+                ORDER BY polling_on
+                """
+            ).fetchall()
+
+        return [
+            date.fromisoformat(row["polling_on"])
+            for row in rows
+        ]
 
 
 def _get_rows(connection: sqlite3.Connection, general_election_id) -> list[sqlite3.Row]:
@@ -95,7 +121,7 @@ def _get_constituency_rows(rows: list[sqlite3.Row]) -> dict[int, list[sqlite3.Ro
 def _load_constituency(election_date: date, election_id: int, candidate_rows: list[sqlite3.Row]) -> Constituency:
     first_row = candidate_rows[0]
 
-    candidate_list: list[ConstituencyCandidateResult] = []
+    candidate_list: list[Candidate] = []
 
     for row in candidate_rows:
         if row["is_standing_as_independent"]:
@@ -111,7 +137,7 @@ def _load_constituency(election_date: date, election_id: int, candidate_rows: li
         ).strip()
 
         candidate_list.append(
-            ConstituencyCandidateResult(
+            Candidate(
                 candidacy_id=row["candidacy_id"],
                 constituency_id=row["constituency_id"],
                 election_id=row["election_id"],
@@ -141,16 +167,16 @@ def _load_constituency(election_date: date, election_id: int, candidate_rows: li
     )
 
 
-def load_general_election_result(election_date: date) -> GeneralElectionResult:
+def load_general_election_result(election_date: date, is_notional: bool = False) -> GeneralElection:
     with _connect() as connection:
         general_election = connection.execute(
             """
             SELECT id
             FROM general_elections
             WHERE polling_on = ?
-              AND is_notional = 0
+              AND is_notional = ?
             """,
-            (election_date.isoformat(),),
+            (election_date.isoformat(), int(is_notional)),
         ).fetchone()
 
         if general_election is None:
@@ -166,7 +192,7 @@ def load_general_election_result(election_date: date) -> GeneralElectionResult:
         for election_id, candidate_rows in constituency_rows.items():
             constituency_list.append(_load_constituency(election_date, election_id, candidate_rows))
 
-        return GeneralElectionResult(general_election_id, election_date, Constituencies(constituency_list))
+        return GeneralElection(general_election_id, election_date, is_notional, Constituencies(constituency_list))
 
 
 

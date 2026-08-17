@@ -3,10 +3,11 @@ from datetime import date
 from uk_election_data.general.constituencies import Constituencies
 
 
-class GeneralElectionResult:
-    def __init__(self, election_id: int, election_date: date, constituencies: Constituencies):
+class GeneralElection:
+    def __init__(self, election_id: int, election_date: date, is_notional: bool, constituencies: Constituencies):
         self._election_id = election_id
         self._election_date = election_date
+        self._is_notional = is_notional
         self._constituencies = constituencies
 
         self._seats_won_by_party: dict[str, int] = {}
@@ -41,6 +42,10 @@ class GeneralElectionResult:
     @property
     def election_date(self) -> date:
         return self._election_date
+
+    @property
+    def is_notional(self) -> bool:
+        return self._is_notional
 
     @property
     def constituencies(self) -> Constituencies:
